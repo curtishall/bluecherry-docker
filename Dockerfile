@@ -27,19 +27,25 @@ ENV BLUECHERRY_USER_ID=${BLUECHERRY_USER_ID:-1001}
 # build the application from github
 #######################################################
 
-FROM scratch AS build
+# FROM scratch AS build
 
-WORKDIR /root
-RUN \
-    apt-get update && \
-    apt-get install -y git sudo && \
-    git clone https://github.com/bluecherrydvr/bluecherry-apps.git && \
-    cd bluecherry-apps && \
-    scripts/build_pkg_native.sh
+# WORKDIR /root
+# RUN \
+#    apt-get update && \
+#    apt-get install -y git sudo && \
+#    git clone https://github.com/bluecherrydvr/bluecherry-apps.git && \
+#    cd bluecherry-apps && \
+#    scripts/build_pkg_native.sh
 
 #######################################################
 # create a container to host the bluecherry service
 #######################################################
+
+#######################################################
+# wget the Bluecherry amd64 latest stable version (2.8.8 as of 3/9/2020)
+#######################################################
+
+RUN wget http://ubuntu.bluecherrydvr.com/pool/bionic/bluecherry_2.8.8_amd64.deb
 
 FROM scratch AS bluecherry
 MAINTAINER raymond.bennett@gmail.com
