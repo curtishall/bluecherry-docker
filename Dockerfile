@@ -27,25 +27,20 @@ ENV BLUECHERRY_USER_ID=${BLUECHERRY_USER_ID:-1001}
 # build the application from github
 #######################################################
 
-# FROM scratch AS build
+FROM scratch AS build
 
-# WORKDIR /root
-# RUN \
-#    apt-get update && \
-#    apt-get install -y git sudo && \
+WORKDIR /root
+RUN \
+    apt-get update && \
+    apt-get install -y wget sudo
 #    git clone https://github.com/bluecherrydvr/bluecherry-apps.git && \
 #    cd bluecherry-apps && \
 #    scripts/build_pkg_native.sh
 
+
 #######################################################
 # create a container to host the bluecherry service
 #######################################################
-
-#######################################################
-# wget the Bluecherry amd64 latest stable version (2.8.8 as of 3/9/2020)
-#######################################################
-
-RUN wget http://ubuntu.bluecherrydvr.com/pool/bionic/bluecherry_2.8.8_amd64.deb
 
 FROM scratch AS bluecherry
 MAINTAINER raymond.bennett@gmail.com
@@ -53,7 +48,7 @@ WORKDIR /root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-COPY --from=build /root/bluecherry-apps/releases/*.deb /root/
+#COPY --from=build /root/bluecherry-apps/releases/*.deb /root/
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY Dockerfile etc/bluecherry.conf* /etc/
 
@@ -88,8 +83,13 @@ RUN /usr/sbin/groupadd -r -f -g $BLUECHERRY_GROUP_ID bluecherry && \
         echo bluecherry bluecherry/db_user string $user;                                \
         echo bluecherry bluecherry/db_password password $password;                      \
     } | debconf-set-selections  && \
-    dpkg -i bluecherry_*.deb    && \
-    rm /root/bluecherry_*.deb   && \
+#    dpkg -i bluecherry_*.deb    && \
+    wget -q https://dl.bluecherrydvr.com/key/bluecherry.asc && \
+    apt-key add bluecherry.asc && \
+    wget --no-check-certificate --output-document=/etc/apt/sources.list.d/bluecherry-bionic.list https://dl.bluecherrydvr.com/sources.list.d/bluecherry-bionic-unstable.list && \
+    apt-get update && \
+    apt -y install bluecherry && \
+#    rm /root/bluecherry_*.deb   && \
     rm -rf /var/lib/apt/lists/* && \
     rm /etc/Dockerfile
 
